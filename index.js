@@ -1,48 +1,67 @@
 const express = require("express");
+var cors = require('cors');
+const mysql = require('mysql2');
+
+// create the connection to database
+const connection = mysql.createConnection({
+  host: 'localhost',
+  user: 'wchairsadmin',
+  password: '!_MavFK3t-V-h^@@',
+  port: 3306,
+  database: 'wchairs'
+});
+
+connection.connect(function (error) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log("success");
+  }
+});
+
 const app = express();
 const port = 5000;
 
-const hairSalon = [
-  {
-    id: 12,
-    name: "Tiff'haine",
-  },
-  {
-    id: 28,
-    name: "Adult'hair",
-  },
-  {
-    id: 3,
-    name: "Ryan'hair",
-  },
-  {
-    id: 15,
-    name: "La casa de pelos",
-  },
-  {
-    id: 42,
-    name: "Apéritiff",
-  },
-];
+var corsOptions = {
+  origin: 'http://localhost:3000'
+}
+app.use(cors(corsOptions));
 
 app.get("/", (request, response) => {
   response.status(200).send("Hello WCS!");
 });
 
 app.get("/salons", function (request, response) {
-  response.send(hairSalon);
+  connection.query(
+    'SELECT id, name FROM `salon`',
+    function(error, results) {
+      if (error) {
+        response.status(500).send(error);
+      } else {
+        response.send(results);
+      }
+    }
+  );
 });
 
 app.get("/salons/:id", (request, response) => {
   // récupérer la valeur de :id
-  const salonId = parseInt(request.params.id);
-  // trouver l'élément qui à l'identifiant id
-  const salon = hairSalon.find((salon) => salon.id === salonId);
-  if (salon) {
-    response.send(salon);
-  } else {
-    response.sendStatus(404);
-  }
+  const salonId = request.params.id;
+
+  connection.query(
+    "SELECT id, name FROM salon where id = ?",
+    [salonId],
+    function(error, results) {
+      console.log(results);
+      if (error) {
+        response.status(500).send(error);
+      } else if (results.length === 0) {
+        response.sendStatus(404);
+      } else {
+        response.send(results[0]);
+      }
+    }
+  );
 });
 
 app.listen(port, () => {
