@@ -4,8 +4,10 @@ var cors = require('cors');
 require('dotenv').config();
 
 const connection = require('./config/mysql');
+require("express");
 
 const app = express();
+app.use(express.json());
 const port = process.env.PORT;
 
 var corsOptions = {
@@ -15,7 +17,7 @@ app.use(cors(corsOptions));
 
 app.get("/salons", function (request, response) {
   connection.query(
-    'SELECT id, name FROM `salon`',
+    'SELECT * FROM `salon`',
     function(error, results) {
       if (error) {
         response.status(500).send(error);
@@ -44,6 +46,20 @@ app.get("/salons/:id", (request, response) => {
       }
     }
   );
+});
+
+app.post('/salons', (request, response) => {
+  const { name, price, bookable } = request.body;
+  connection.query(`INSERT INTO salon (name, price, bookable) VALUES (?, ?, ?)`,
+      [name, price, bookable],
+      (error, results) => {
+    if (error) {
+      console.error(error);
+      response.status(500).send(error);
+    } else {
+      response.status(200).send(results);
+    }
+  })
 });
 
 app.listen(port, () => {
