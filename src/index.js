@@ -1,36 +1,17 @@
 const express = require("express");
 var cors = require('cors');
-const mysql = require('mysql2');
+
 require('dotenv').config();
 
-// create the connection to database
-const connection = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
-  database: process.env.DB_NAME
-});
-
-connection.connect(function (error) {
-  if (error) {
-    console.error(error);
-  } else {
-    console.log("success");
-  }
-});
+const connection = require('./config/mysql');
 
 const app = express();
-const port = 5000;
+const port = process.env.PORT;
 
 var corsOptions = {
-  origin: 'http://localhost:3000'
+  origin: process.env.FRONTEND_URL
 }
 app.use(cors(corsOptions));
-
-app.get("/", (request, response) => {
-  response.status(200).send("Hello WCS!");
-});
 
 app.get("/salons", function (request, response) {
   connection.query(
